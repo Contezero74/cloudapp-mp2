@@ -157,15 +157,18 @@ public class PopularityLeague extends Configured implements Tool {
         protected void cleanup(Context context) throws IOException, InterruptedException {
 		int rank = -1;
 		Integer lastScore = null;
+		Integer lastRank = null;
                 for (Pair<Integer, Integer> item : countToRankMap) {
-			LOG.info("map: <" + item.second + ": " + item.first + ">; rank: " + rank + "; lastScore: " + lastScore + "; item.first ! =lastScore: " + (!item.first.equals(lastScore)));
+			++rank;
+
+			LOG.info("map: <" + item.second + " : " + item.first + ">; rank: <" + rank + " : " + lastRank + ">; lastScore: " + lastScore + "; item.first ! =lastScore: " + (!item.first.equals(lastScore)));
 
 			if (null == lastScore || !item.first.equals(lastScore)) {
 				lastScore = item.first;
-				++rank;
+				lastRank = rank;
 			}
 			
-                        Integer[] integers = { item.second, rank, item.first };
+                        Integer[] integers = { item.second, lastRank, item.first };
                         IntArrayWritable val = new IntArrayWritable(integers);
                         context.write(NullWritable.get(), val);
                 }
