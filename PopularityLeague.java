@@ -16,6 +16,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -156,12 +158,14 @@ public class PopularityLeague extends Configured implements Tool {
 		int rank = -1;
 		Integer lastScore = null;
                 for (Pair<Integer, Integer> item : countToRankMap) {
-			if (null == lastScore || item.first != lastScore) {
+			LOG.info("map: <" + item.second + ": " + item.first + ">; rank: " + rank + "; lastScore: " + lastScore + "; item.first ! =lastScore: " + (!item.first.equals(lastScore)));
+
+			if (null == lastScore || !item.first.equals(lastScore)) {
 				lastScore = item.first;
 				++rank;
 			}
 			
-                        Integer[] integers = { item.second, rank };
+                        Integer[] integers = { item.second, rank, item.first };
                         IntArrayWritable val = new IntArrayWritable(integers);
                         context.write(NullWritable.get(), val);
                 }
@@ -175,11 +179,16 @@ public class PopularityLeague extends Configured implements Tool {
                         IntWritable[] pair = (IntWritable[]) val.toArray();
                         IntWritable id = pair[0];
                         IntWritable rank = pair[1];
+			IntWritable score = pair[2];
+
+			LOG.info("reduce: id: " + id.get() + "; score: " + score.get() + "; rank: " + rank.get());
 
 			context.write(id, rank);
                 }
         }
     }
+
+    private static final Log LOG = LogFactory.getLog(PopularityLeague.class);
 }
 
 class Pair<A extends Comparable<? super A>,
